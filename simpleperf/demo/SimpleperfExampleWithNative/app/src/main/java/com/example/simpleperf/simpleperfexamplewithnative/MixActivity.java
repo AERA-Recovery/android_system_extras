@@ -1,15 +1,18 @@
-package com.example.simpleperf.simpleperfexamplepurejava;
+package com.example.simpleperf.simpleperfexamplewithnative;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-public class MainActivity extends AppCompatActivity {
+public class MixActivity extends AppCompatActivity {
+
+    static {
+        System.loadLibrary("native-lib");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
+        setContentView(R.layout.activity_mix);
         createBusyThread();
     }
 
@@ -24,9 +27,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            private int callFunction(int a) {
-                return a+1;
-            }
         }, "BusyThread").start();
     }
+
+    private native int callFunction(int a);
 }

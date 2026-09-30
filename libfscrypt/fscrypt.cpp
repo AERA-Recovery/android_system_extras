@@ -363,20 +363,24 @@ bool EnsurePolicy(const EncryptionPolicy& policy, const std::string& directory) 
     // unencrypted; otherwise it will verify that the existing policy matches.
     // Setting the policy will fail if the directory is already nonempty.
     if (ioctl(fd, FS_IOC_SET_ENCRYPTION_POLICY, &kern_policy) != 0) {
+        const int policy_errno = errno;
         std::string reason;
-        switch (errno) {
+        switch (policy_errno) {
             case EEXIST:
                 reason = "The directory already has a different encryption policy.";
                 break;
             default:
-                reason = strerror(errno);
+                reason = strerror(policy_errno);
                 break;
         }
         LOG(ERROR) << "Failed to set encryption policy of " << directory << " to "
                    << PolicyDebugString(policy) << ": " << reason;
-        if (errno == ENOTEMPTY) {
+        if (policy_errno == ENOTEMPTY) {
             log_ls(directory.c_str());
         }
+        // Preserve the ioctl failure for callers which need to distinguish a
+        // populated policy-less directory from other fscrypt failures.
+        errno = policy_errno;
         return false;
     }
 
